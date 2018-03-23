@@ -27,8 +27,16 @@ _START_VOCAB = [_PAD, _UNK]
 PAD_ID = 0
 UNK_ID = 1
 
+GLOVE_VOCAB_SIZE=1917494
+FASTTEXT_VOCAB_SIZE=2000000
 
 def get_glove(glove_path):
+    return get_word_embeddings(glove_path,GLOVE_VOCAB_SIZE)
+
+def get_fasttext(fasttext_path):
+    return get_word_embeddings(fasttext_path,FASTTEXT_VOCAB_SIZE)
+
+def get_word_embeddings(path,vocab_size):
     """Reads from original GloVe .txt file and returns embedding matrix and
     mappings from words to word ids.
 
@@ -42,18 +50,18 @@ def get_glove(glove_path):
       word2id: dictionary mapping word (string) to word id (int)
       id2word: dictionary mapping word id (int) to word (string)
     """
-    print ("Loading GLoVE vectors from file: %s" % glove_path)
-    glove_dim = 300
-    vocab_size = int(1917494) # this is the vocab size of the corpus we've downloaded
+    print ("Loading vectors from file: %s" % path)
+    dim = 300
+    #vocab_size = int(1917494) # this is the vocab size of the corpus we've downloaded
 
-    emb_matrix = np.zeros((vocab_size + len(_START_VOCAB), glove_dim))
+    emb_matrix = np.zeros((vocab_size + len(_START_VOCAB), dim))
     word2id = {}
     id2word = {}
 
     random_init = True
     # randomly initialize the special tokens
     if random_init:
-        emb_matrix[:len(_START_VOCAB), :] = np.random.randn(len(_START_VOCAB), glove_dim)
+        emb_matrix[:len(_START_VOCAB), :] = np.random.randn(len(_START_VOCAB), dim)
 
     # put start tokens in the dictionaries
     idx = 0
@@ -63,13 +71,11 @@ def get_glove(glove_path):
         idx += 1
 
     # go through glove vecs
-    with open(glove_path, 'r', encoding="utf8") as fh:
+    with open(path, 'r', encoding="utf8") as fh:
         for line in tqdm(fh, total=vocab_size):
-            line = line.lstrip().rstrip().split(" ")
+            line = line.rstrip().split(" ")
             word = line[0]
             vector = list(map(float, line[1:]))
-            if glove_dim != len(vector):
-                raise Exception("You set --glove_path=%s but --embedding_size=%i. If you set --glove_path yourself then make sure that --embedding_size matches!" % (glove_path, glove_dim))
             emb_matrix[idx, :] = vector
             word2id[word] = idx
             id2word[idx] = word
@@ -81,3 +87,4 @@ def get_glove(glove_path):
     assert idx == final_vocab_size
 
     return emb_matrix, word2id, id2word
+
