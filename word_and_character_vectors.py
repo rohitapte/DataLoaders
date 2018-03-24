@@ -1,25 +1,9 @@
-# Copyright 2018 Stanford University
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-"""This file contains a function to read the GloVe vectors from file,
-and return them as an embedding matrix"""
-
 from __future__ import absolute_import
 from __future__ import division
 
 from tqdm import tqdm
 import numpy as np
+import os
 
 _PAD = b"<pad>"
 _UNK = b"<unk>"
@@ -27,32 +11,44 @@ _START_VOCAB = [_PAD, _UNK]
 PAD_ID = 0
 UNK_ID = 1
 
+#these are the lines in the glove and fasttext files
 GLOVE_VOCAB_SIZE=1917494
+GLOVE_FILENAME='glove.42B.300d.txt'
+GLOVE_DIMENSION=300
 FASTTEXT_VOCAB_SIZE=2000000
+FASTTEXT_FILENAME='crawl-300d-2M.vec'
+FASTTEXT_DIMENSION=300
 
-def get_glove(glove_path):
-    return get_word_embeddings(glove_path,GLOVE_VOCAB_SIZE)
+#get glove vectors. need to pass just the data path location
+#adds glove.42B.300d to path
+def get_glove(data_file_path):
+    path=os.path.join(data_file_path,GLOVE_FILENAME)
+    return get_word_embeddings(path,GLOVE_VOCAB_SIZE,GLOVE_DIMENSION)
 
-def get_fasttext(fasttext_path):
-    return get_word_embeddings(fasttext_path,FASTTEXT_VOCAB_SIZE)
+#gets fasttext vectors. need to pass just the data path location
+#adds glove.42B.300d to path
+def get_fasttext(data_file_path):
+    path = os.path.join(data_file_path, FASTTEXT_FILENAME)
+    return get_word_embeddings(path, FASTTEXT_VOCAB_SIZE,FASTTEXT_DIMENSION)
 
-def get_word_embeddings(path,vocab_size):
-    """Reads from original GloVe .txt file and returns embedding matrix and
+def get_word_embeddings(datafile,vocab_size,dimension):
+    """Reads from the data file and returns embedding matrix and
     mappings from words to word ids.
 
     Input:
-      glove_path: path to glove.42B.{glove_dim}d.txt
+      datafile: path to data file
+      vocab_size: size of vocabulary
+      dimension: vector dimension
 
     Returns:
-      emb_matrix: Numpy array shape (400002, glove_dim) containing glove embeddings
+      emb_matrix: Numpy array shape (vocab_size, dimension) containing vector embeddings
         (plus PAD and UNK embeddings in first two rows).
         The rows of emb_matrix correspond to the word ids given in word2id and id2word
       word2id: dictionary mapping word (string) to word id (int)
       id2word: dictionary mapping word id (int) to word (string)
     """
-    print ("Loading vectors from file: %s" % path)
-    dim = 300
-    #vocab_size = int(1917494) # this is the vocab size of the corpus we've downloaded
+    print ("Loading vectors from file: %s" % datafile)
+    dim = dimension
 
     emb_matrix = np.zeros((vocab_size + len(_START_VOCAB), dim))
     word2id = {}
@@ -71,7 +67,7 @@ def get_word_embeddings(path,vocab_size):
         idx += 1
 
     # go through glove vecs
-    with open(path, 'r', encoding="utf8") as fh:
+    with open(datafile, 'r', encoding="utf8") as fh:
         for line in tqdm(fh, total=vocab_size):
             line = line.rstrip().split(" ")
             word = line[0]
