@@ -20,8 +20,8 @@ FASTTEXT_FILENAME='crawl-300d-2M.vec'
 FASTTEXT_DIMENSION=300
 CHAR_VOCAB_SIZE=65
 CHAR_FILENAME='char_dim_wordSize_word_size.txt'
-CHAR_DIMENSION=16
-CHAR_WORD_SAMPLING=5
+CHAR_DIMENSION=128
+CHAR_WORD_SAMPLING=10
 
 def get_char(data_file_path):
     filename=CHAR_FILENAME
@@ -41,7 +41,7 @@ def get_character_embeddings(datafile,vocab_size,dimension):
     idx = 0
     # go through vecs
     with open(datafile, 'r', encoding="utf8") as fh:
-        for line in tqdm(fh, total=vocab_size):
+        for line in fh:
             line = line.rstrip().split("\t")
             char = line[0]
             vector = list(map(float, line[1:]))
