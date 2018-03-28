@@ -18,6 +18,45 @@ GLOVE_DIMENSION=300
 FASTTEXT_VOCAB_SIZE=2000000
 FASTTEXT_FILENAME='crawl-300d-2M.vec'
 FASTTEXT_DIMENSION=300
+CHAR_VOCAB_SIZE=65
+CHAR_FILENAME='char_dim_wordSize_word_size.txt'
+CHAR_DIMENSION=16
+CHAR_WORD_SAMPLING=5
+
+def get_char(data_file_path):
+    filename=CHAR_FILENAME
+    filename=filename.replace('dim',str(CHAR_DIMENSION))
+    filename=filename.replace('word_size',str(CHAR_WORD_SAMPLING))
+    path=os.path.join(data_file_path,filename)
+    return get_character_embeddings(path,CHAR_VOCAB_SIZE,CHAR_DIMENSION)
+
+def get_character_embeddings(datafile,vocab_size,dimension):
+    print("Loading vectors from file: %s" % datafile)
+    dim = dimension
+    emb_matrix = np.zeros((vocab_size, dim))
+    char2id = {}
+    id2char = {}
+
+    # put start tokens in the dictionaries
+    idx = 0
+    # go through vecs
+    with open(datafile, 'r', encoding="utf8") as fh:
+        for line in tqdm(fh, total=vocab_size):
+            line = line.rstrip().split("\t")
+            char = line[0]
+            vector = list(map(float, line[1:]))
+            emb_matrix[idx, :] = vector
+            char2id[char] = idx
+            id2char[idx] = char
+            idx += 1
+
+    final_vocab_size = vocab_size
+    assert len(char2id) == final_vocab_size
+    assert len(id2char) == final_vocab_size
+    assert idx == final_vocab_size
+
+    return emb_matrix, char2id, id2char
+
 
 #get glove vectors. need to pass just the data path location
 #adds glove.42B.300d to path
@@ -83,4 +122,3 @@ def get_word_embeddings(datafile,vocab_size,dimension):
     assert idx == final_vocab_size
 
     return emb_matrix, word2id, id2word
-
